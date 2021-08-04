@@ -96,15 +96,19 @@ class WhiteBoardManager(
 
     @SuppressLint("ClickableViewAccessibility")
     private val onTouchListener = View.OnTouchListener { v, event ->
-        if (event!!.action == MotionEvent.ACTION_DOWN) {
-            whiteBoardView.requestFocus()
-            if (boardProxy.isDisableCameraTransform && !boardProxy.isDisableDeviceInputs) {
-                ToastManager.showShort(R.string.follow_tips)
-                return@OnTouchListener true
-            }
-        }
+        // always disableCameraTransform.(just for jiojio)
+//        if (event!!.action == MotionEvent.ACTION_DOWN) {
+//            whiteBoardView.requestFocus()
+//            if (boardProxy.isDisableCameraTransform && !boardProxy.isDisableDeviceInputs) {
+//                ToastManager.showShort(R.string.follow_tips)
+//                return@OnTouchListener true
+//            }
+//        }
+        // always disableCameraTransform.(just for jiojio)
         return@OnTouchListener false
     }
+    private val pptToFitDelay = 1000L
+    private val pptToFitRunnable = Runnable { boardProxy.scalePptToFit() }
 
     init {
         DWebView.setWebContentsDebuggingEnabled(true)
@@ -112,15 +116,16 @@ class WhiteBoardManager(
         whiteBoardView.settings.allowFileAccessFromFileURLs = true
         whiteBoardView.webViewClient = webViewClient
         whiteBoardView.setOnTouchListener(onTouchListener)
-//        whiteBoardView.addOnLayoutChangeListener { v: View?, left: Int, top: Int, right: Int,
-//                                                   bottom: Int, oldLeft: Int, oldTop: Int,
-//                                                   oldRight: Int, oldBottom: Int ->
-//            if (context is Activity && (context.isFinishing) ||
-//                    (context as Activity).isDestroyed) {
-//                return@addOnLayoutChangeListener
-//            }
-//            boardProxy.refreshViewSize()
-//        }
+        whiteBoardView.addOnLayoutChangeListener { v: View?, left: Int, top: Int, right: Int,
+                                                   bottom: Int, oldLeft: Int, oldTop: Int,
+                                                   oldRight: Int, oldBottom: Int ->
+            if (context is Activity && ((context.isFinishing) || context.isDestroyed)) {
+                whiteBoardView.removeCallbacks(pptToFitRunnable)
+                return@addOnLayoutChangeListener
+            }
+            whiteBoardView.postDelayed(pptToFitRunnable, pptToFitDelay)
+            whiteBoardView.postDelayed(pptToFitRunnable, pptToFitDelay * 2)
+        }
         whiteboardContext.getHandlers()?.forEach {
             it.onDrawingEnabled(!boardProxy.isDisableDeviceInputs)
             it.onPagingEnabled(!boardProxy.isDisableDeviceInputs)
@@ -128,6 +133,8 @@ class WhiteBoardManager(
         val layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
         whiteBoardView.layoutParams = layoutParams
+        whiteBoardView.isHorizontalScrollBarEnabled = false
+        whiteBoardView.isVerticalScrollBarEnabled = false
         whiteBoardViewContainer.addView(whiteBoardView)
         boardProxy.setListener(this)
     }
@@ -471,7 +478,14 @@ class WhiteBoardManager(
         var download = false
         state?.let {
             curSceneState = state
+            // notify sceneChanged to activity
             whiteBoardManagerEventListener?.onSceneChanged(it)
+            // if current scene is ppt, always to fit.(just for jiojio)
+            if (it.scenes[0].ppt != null) {
+                boardProxy.scalePptToFit()
+            }
+            // if current scene is ppt, always to fit.(just for jiojio)
+            // check and downloadCourseware
             val index: Int = curSceneState!!.scenePath.lastIndexOf(File.separator)
             val dir: String = curSceneState!!.scenePath.substring(0, index)
             if (TextUtils.isEmpty(lastSceneDir)) {
@@ -527,7 +541,10 @@ class WhiteBoardManager(
                 }
             }
             if (curBoardState?.isGranted(localUserUuid) != latestBoardState.isGranted(localUserUuid)) {
-                boardProxy.follow(!latestBoardState.isGranted(localUserUuid))
+                // always follow(just for jiojio), see APAAS-762
+//                boardProxy.follow(!latestBoardState.isGranted(localUserUuid))
+                boardProxy.follow(true)
+                // always follow(just for jiojio), see APAAS-762
             }
             curBoardState = state
             if (!curBoardState!!.isTeacherFirstLogin && courseware != null && scenePpts != null
@@ -567,7 +584,10 @@ class WhiteBoardManager(
                     followTips = true
                     curFollowState = follow
                 }
-                disableCameraTransform(!granted)
+                // always disableCameraTransform(just for jiojio)
+//                disableCameraTransform(!granted)
+                disableCameraTransform(true)
+                // always disableCameraTransform(just for jiojio)
                 val grantedUsers = curBoardState!!.grantUsers
                 if (curGrantedUsers != grantedUsers) {
                     curGrantedUsers.clear()
