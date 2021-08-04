@@ -483,6 +483,8 @@ class WhiteBoardManager(
             // if current scene is ppt, always to fit.(just for jiojio)
             if (it.scenes[0].ppt != null) {
                 boardProxy.scalePptToFit()
+                whiteBoardView.postDelayed(pptToFitRunnable, pptToFitDelay)
+                whiteBoardView.postDelayed(pptToFitRunnable, pptToFitDelay * 2)
             }
             // if current scene is ppt, always to fit.(just for jiojio)
             // check and downloadCourseware

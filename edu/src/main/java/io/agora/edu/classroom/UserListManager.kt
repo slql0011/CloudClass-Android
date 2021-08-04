@@ -147,23 +147,6 @@ open class UserListManager(
                                             it.onUserListUpdated(list)
                                         }
                                         val infos = list.filter { it.coHost } as MutableList
-                                        val userIds = infos.map { it.user.userUuid } as MutableList
-                                        coHosts.removeAll(userIds)
-                                        coHosts.forEach {
-                                            val name = getStudentName(it)
-                                            val userInfo = EduContextUserInfo(it, name,
-                                                    properties = getUserFlexProps(it))
-                                            val offLineDetailInfo = EduContextUserDetailInfo(userInfo, "")
-                                            offLineDetailInfo.isSelf = false
-                                            offLineDetailInfo.onLine = false
-                                            offLineDetailInfo.coHost = true
-                                            offLineDetailInfo.boardGranted = eventListener?.onGranted(it)
-                                                    ?: false
-                                            offLineDetailInfo.rewardCount = getRewardCount(it)
-                                            offLineDetailInfo.enableVideo = false
-                                            offLineDetailInfo.enableAudio = false
-                                            infos.add(offLineDetailInfo)
-                                        }
                                         userContext.getHandlers()?.forEach {
                                             it.onCoHostListUpdated(infos)
                                         }
